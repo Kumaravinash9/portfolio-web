@@ -496,9 +496,15 @@ export default function App() {
         </p>
         <div className="mt-9 flex justify-center">
           <a
-            href="https://wa.me/919229529319?text=Hi%20InnoAI%20Labs%2C%20I%27d%20like%20to%20hire%20your%20team%20for%20a%20project."
+            href="https://calendly.com/aiinno"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => {
+              if (window.Calendly) {
+                e.preventDefault();
+                window.Calendly.initPopupWidget({ url: "https://calendly.com/aiinno" });
+              }
+            }}
             className="inline-block rounded-lg bg-cobalt px-8 py-4 font-mono text-sm font-semibold uppercase tracking-wide text-white transition hover:translate-y-[-2px] hover:shadow-[0_16px_36px_-12px_var(--color-cobalt)]"
           >
             Hire the team →
