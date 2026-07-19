@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #f6f7fb;
+  --color-paper-2: #eef1f8;
+  --color-ink: #0b1220;
+  --color-ink-soft: #38445e;
+  --color-muted: #5b6b8c;
+  --color-line: #dde3f0;
+  --color-line-strong: #c6cfe4;
+  --color-cobalt: #2456ff;
+  --color-cobalt-soft: #e6ecff;
+  --color-signal: #ff5c3a;
+
+  /* translucent card surfaces — theme-aware */
+  --color-surface: rgba(255, 255, 255, 0.7);
+  --color-surface-2: rgba(255, 255, 255, 0.5);
+}
+
+:root {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #0b1120;
+  --color-paper-2: #151d2f;
+  --color-ink: #e8edf7;
+  --color-ink-soft: #aab6cc;
+  --color-muted: #7e8db0;
+  --color-line: #24304a;
+  --color-line-strong: #33425f;
+  --color-cobalt: #6b8cff;
+  --color-cobalt-soft: #1a2547;
+  --color-surface: rgba(148, 163, 214, 0.06);
+  --color-surface-2: rgba(148, 163, 214, 0.035);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* faint engineering grid — the "sheet" the whole site sits on */
+  background-image:
+    linear-gradient(to right, rgba(11, 18, 32, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(11, 18, 32, 0.035) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+[data-theme="dark"] body {
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 214, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 214, 0.05) 1px, transparent 1px);
+}
+
+::selection {
+  background: var(--color-cobalt);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+  html { scroll-behavior: auto; }
+}
