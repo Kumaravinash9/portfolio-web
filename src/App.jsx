@@ -113,7 +113,7 @@ const cases = [
 ];
 
 const whyUs = [
-  ["IIT grads", "Both of us trained at IIT — deep grounding in algorithms, system design, and first-principles thinking that shows up as cleaner architecture and fewer surprises."],
+  ["IIT grads", "Both of us graduated from IIT — deep grounding in algorithms, system design, and first-principles thinking that shows up as cleaner architecture and fewer surprises."],
   ["Proven at scale", "Systems built at Google, eBay, Deutsche Bank, Oracle, Microsoft, and Agoda — serving hundreds of millions of users."],
   ["Direct collaboration", "You talk to the engineers building your product — fast decisions, clear communication, no middlemen."],
   ["End to end", "AI, backend, data, and infrastructure under one roof. We own the whole system."],
