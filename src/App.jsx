@@ -20,7 +20,7 @@ const members = [
     school: "IIT BHU",
     years: "4+ yrs",
     bio: "Builds AI-powered platforms and cloud-native backends at enterprise scale — RAG, LLM agents, computer vision, and distributed systems. Google Summer of Code alum.",
-    stack: ["Python", "Java", "Spring Boot", "FastAPI", "RAG / LLMs", "Computer Vision", "Vector DBs", "Kafka", "Redis", "GCP"],
+    stack: ["LangChain", "AI/ML", "RAG", "Computer Vision", "Backend", "Platform"],
     companies: [
       { name: "eBay", domain: "ebay.com" },
       { name: "InMobi", domain: "inmobi.com" },
@@ -42,7 +42,7 @@ const members = [
     school: "IIT BHU",
     years: "4+ yrs",
     bio: "Builds AI products and scalable, cloud-native backends at global scale — distributed systems, platform reliability, and hands-on AI/LLM engineering.",
-    stack: ["AI / LLMs", "Backend", "Cloud (OCI)", "Distributed Systems", "Microservices", "[Add languages]"],
+    stack: ["AI / LLMs", "Backend", "Cloud (OCI)", "Distributed Systems", "Microservices"],
     companies: [
       { name: "Oracle Cloud (OCI)", domain: "oracle.com" },
       { name: "Microsoft", domain: "microsoft.com" },
