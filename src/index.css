@@ -80,7 +80,7 @@ body {
   align-items: center;
   gap: 3.5rem;
   width: max-content;
-  animation: marquee 26s linear infinite;
+  animation: marquee 38s linear infinite;
 }
 .marquee:hover .marquee-track {
   animation-play-state: paused;

@@ -259,10 +259,6 @@ export default function App() {
               <a href="#work" className="rounded-lg border border-line-strong px-6 py-3 font-mono text-sm font-semibold uppercase tracking-wide text-ink transition hover:border-cobalt">
                 See the work
               </a>
-              <a href="#contact" className="group inline-flex items-center gap-2 rounded-lg border border-cobalt px-6 py-3 font-mono text-sm font-semibold uppercase tracking-wide text-cobalt transition hover:bg-cobalt hover:text-white">
-                Connect
-                <span className="transition group-hover:translate-x-0.5">→</span>
-              </a>
             </motion.div>
           </div>
 
@@ -302,45 +298,40 @@ export default function App() {
           initial="hidden" whileInView="show" viewport={{ once: true }} variants={rise}
           className="mt-10 overflow-hidden rounded-xl border border-line bg-surface"
         >
-          <div className="flex items-center gap-3 border-b border-line px-6 py-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-cobalt" />
-            <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted">
+          <div className="flex items-center gap-3 border-b border-line px-6 py-4">
+            <span className="h-2 w-2 rounded-full bg-cobalt" />
+            <span className="font-display text-base font-semibold tracking-tight text-ink md:text-xl">
               Proven at the companies that set the bar
             </span>
           </div>
-          <div className="marquee px-6 py-6">
-            <div className="marquee-track">
-              {[
-                { name: "Google", domain: "google.com" },
-                { name: "eBay", domain: "ebay.com" },
-                { name: "Deutsche Bank", domain: "db.com" },
-                { name: "InMobi", domain: "inmobi.com" },
-                { name: "Oracle", domain: "oracle.com" },
-                { name: "Microsoft", domain: "microsoft.com" },
-                { name: "Agoda", domain: "agoda.com" },
-              ]
-                .concat([
-                  { name: "Google", domain: "google.com" },
-                  { name: "eBay", domain: "ebay.com" },
-                  { name: "Deutsche Bank", domain: "db.com" },
-                  { name: "InMobi", domain: "inmobi.com" },
-                  { name: "Oracle", domain: "oracle.com" },
-                  { name: "Microsoft", domain: "microsoft.com" },
-                  { name: "Agoda", domain: "agoda.com" },
-                ])
-                .map((c, i) => (
-                  <img
-                    key={`${c.name}-${i}`}
-                    src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=128`}
-                    alt={c.name}
-                    title={c.name}
-                    width="28"
-                    height="28"
-                    loading="lazy"
-                    className="h-7 w-7 shrink-0 rounded-md opacity-80 transition hover:opacity-100"
-                  />
-                ))}
-            </div>
+          <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4 lg:grid-cols-7">
+            {[
+              { name: "Google", domain: "google.com" },
+              { name: "eBay", domain: "ebay.com" },
+              { name: "Deutsche Bank", domain: "db.com" },
+              { name: "InMobi", domain: "inmobi.com" },
+              { name: "Oracle", domain: "oracle.com" },
+              { name: "Microsoft", domain: "microsoft.com" },
+              { name: "Agoda", domain: "agoda.com" },
+            ].map((c) => (
+              <div
+                key={c.name}
+                title={c.name}
+                className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-line bg-paper px-3 py-4 transition hover:-translate-y-0.5 hover:border-cobalt hover:shadow-[0_12px_24px_-16px_var(--color-cobalt)]"
+              >
+                <img
+                  src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=128`}
+                  alt={c.name}
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                  className="h-9 w-9 rounded-md object-contain opacity-90 transition group-hover:opacity-100"
+                />
+                <span className="text-center font-mono text-[10px] uppercase tracking-wider text-muted transition group-hover:text-ink">
+                  {c.name}
+                </span>
+              </div>
+            ))}
           </div>
         </motion.div>
       </header>
