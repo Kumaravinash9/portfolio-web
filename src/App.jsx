@@ -503,7 +503,7 @@ export default function App() {
           Have a system worth building right?
         </h2>
         <p className="mx-auto mt-5 max-w-lg text-ink-soft">
-          Grab a 30-minute slot and we'll hop on a Google Meet to talk through what you're building — no pitch, just a straight read on scope, approach, and timeline. Available for AI, backend, and platform work.
+          Grab a 30-minute slot and we'll hop on a Google Meet to talk through what you're building — no pitch, just a straight read on scope, approach, and timeline.
         </p>
         <div className="mt-9 flex justify-center">
           <a
