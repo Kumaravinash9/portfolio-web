@@ -472,13 +472,15 @@ export default function App() {
         </p>
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
           <a
-            href={`mailto:${CONTACT_EMAIL}`}
+            href="https://wa.me/919229529319?text=Hi%20InnoAI%20Labs%2C%20I%27d%20like%20to%20hire%20your%20team%20for%20a%20project."
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-block rounded-lg bg-cobalt px-8 py-4 font-mono text-sm font-semibold uppercase tracking-wide text-white transition hover:translate-y-[-2px] hover:shadow-[0_16px_36px_-12px_var(--color-cobalt)]"
           >
             Hire the team →
           </a>
           <a
-            href="https://wa.me/919229529319"
+            href="https://wa.me/919229529319?text=Hi%20InnoAI%20Labs%2C%20I%27d%20like%20to%20discuss%20a%20project."
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg border border-line-strong px-6 py-4 font-mono text-sm font-semibold uppercase tracking-wide text-ink transition hover:border-cobalt hover:text-cobalt"
