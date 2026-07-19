@@ -308,15 +308,39 @@ export default function App() {
               Proven at the companies that set the bar
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-6">
-            {["Google", "eBay", "Deutsche Bank", "InMobi", "Oracle", "Microsoft", "Agoda"].map((co) => (
-              <span
-                key={co}
-                className="font-display text-lg font-semibold tracking-tight text-ink-soft transition hover:text-cobalt md:text-xl"
-              >
-                {co}
-              </span>
-            ))}
+          <div className="marquee px-6 py-6">
+            <div className="marquee-track">
+              {[
+                { name: "Google", domain: "google.com" },
+                { name: "eBay", domain: "ebay.com" },
+                { name: "Deutsche Bank", domain: "db.com" },
+                { name: "InMobi", domain: "inmobi.com" },
+                { name: "Oracle", domain: "oracle.com" },
+                { name: "Microsoft", domain: "microsoft.com" },
+                { name: "Agoda", domain: "agoda.com" },
+              ]
+                .concat([
+                  { name: "Google", domain: "google.com" },
+                  { name: "eBay", domain: "ebay.com" },
+                  { name: "Deutsche Bank", domain: "db.com" },
+                  { name: "InMobi", domain: "inmobi.com" },
+                  { name: "Oracle", domain: "oracle.com" },
+                  { name: "Microsoft", domain: "microsoft.com" },
+                  { name: "Agoda", domain: "agoda.com" },
+                ])
+                .map((c, i) => (
+                  <img
+                    key={`${c.name}-${i}`}
+                    src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=128`}
+                    alt={c.name}
+                    title={c.name}
+                    width="28"
+                    height="28"
+                    loading="lazy"
+                    className="h-7 w-7 shrink-0 rounded-md opacity-80 transition hover:opacity-100"
+                  />
+                ))}
+            </div>
           </div>
         </motion.div>
       </header>
