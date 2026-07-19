@@ -231,7 +231,18 @@ export default function App() {
             >
               {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </button>
-            <a href="#contact" className="rounded-lg bg-cobalt px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider text-white transition hover:opacity-90">
+            <a
+              href="https://calendly.com/aiinno/30min"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                if (window.Calendly) {
+                  e.preventDefault();
+                  window.Calendly.initPopupWidget({ url: "https://calendly.com/aiinno/30min" });
+                }
+              }}
+              className="rounded-lg bg-cobalt px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider text-white transition hover:opacity-90"
+            >
               Hire us
             </a>
           </div>
@@ -310,10 +321,10 @@ export default function App() {
             {[
               { name: "Google", domain: "google.com" },
               { name: "eBay", domain: "ebay.com" },
+              { name: "Microsoft", domain: "microsoft.com" },
               { name: "Deutsche Bank", domain: "db.com" },
               { name: "InMobi", domain: "inmobi.com" },
               { name: "Oracle", domain: "oracle.com" },
-              { name: "Microsoft", domain: "microsoft.com" },
               { name: "Agoda", domain: "agoda.com" },
             ].map((c) => (
               <div
@@ -492,17 +503,17 @@ export default function App() {
           Have a system worth building right?
         </h2>
         <p className="mx-auto mt-5 max-w-lg text-ink-soft">
-          Tell us what you're building. We reply within 24 hours — available for AI, backend, and platform work.
+          Grab a 30-minute slot and we'll hop on a Google Meet to talk through what you're building — no pitch, just a straight read on scope, approach, and timeline. Available for AI, backend, and platform work.
         </p>
         <div className="mt-9 flex justify-center">
           <a
-            href="https://calendly.com/aiinno"
+            href="https://calendly.com/aiinno/30min"
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => {
               if (window.Calendly) {
                 e.preventDefault();
-                window.Calendly.initPopupWidget({ url: "https://calendly.com/aiinno" });
+                window.Calendly.initPopupWidget({ url: "https://calendly.com/aiinno/30min" });
               }
             }}
             className="inline-block rounded-lg bg-cobalt px-8 py-4 font-mono text-sm font-semibold uppercase tracking-wide text-white transition hover:translate-y-[-2px] hover:shadow-[0_16px_36px_-12px_var(--color-cobalt)]"
