@@ -16,6 +16,7 @@ const members = [
     photo: "/avinash.png",
     name: "Avinash Kumar",
     role: "AI & Backend Engineer",
+    tag: "Senior Software Engineer",
     school: "IIT BHU",
     years: "4+ yrs",
     bio: "Builds AI-powered platforms and cloud-native backends at enterprise scale — RAG, LLM agents, computer vision, and distributed systems. Google Summer of Code alum.",
@@ -37,6 +38,7 @@ const members = [
     photo: "/aviral.jpeg",
     name: "Aviral Jain",
     role: "AI & Backend Engineer",
+    tag: "Senior Software Engineer",
     school: "IIT BHU",
     years: "4+ yrs",
     bio: "Builds AI products and scalable, cloud-native backends at global scale — distributed systems, platform reliability, and hands-on AI/LLM engineering.",
@@ -357,7 +359,14 @@ export default function App() {
                 <span className="font-mono text-[11px] uppercase tracking-widest text-muted">{m.years} · {m.school}</span>
               </div>
               <h3 className="mt-5 font-display text-xl font-bold tracking-tight">{m.name}</h3>
-              <div className="font-mono text-xs uppercase tracking-wider text-cobalt">{m.role}</div>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <span className="font-mono text-xs uppercase tracking-wider text-cobalt">{m.role}</span>
+                {m.tag && (
+                  <span className="rounded-full bg-cobalt-soft px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-cobalt">
+                    {m.tag}
+                  </span>
+                )}
+              </div>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft">{m.bio}</p>
 
               <div className="mt-4 font-mono text-[10px] uppercase tracking-widest text-muted">Shipped systems at</div>
