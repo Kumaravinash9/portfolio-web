@@ -270,7 +270,7 @@ export default function App() {
               We architect <span className="text-cobalt">AI systems</span> and the backends that run them.
             </motion.h1>
             <motion.p initial="hidden" animate="show" variants={rise} custom={2} className="mt-6 max-w-lg text-lg leading-relaxed text-ink-soft">
-              A two-person engineering studio from IIT BHU. We ship production RAG, LLM applications, and distributed backends — the kind that hold up at enterprise scale.
+              IIT's engineers shipping production RAG, LLM applications, and distributed backends — the kind that hold up at enterprise scale.
             </motion.p>
             <motion.p initial="hidden" animate="show" variants={rise} custom={2.5} className="mt-4 font-mono text-sm text-ink">
               <span className="text-cobalt">▸</span> Looking for hard, complex problems worth solving.
