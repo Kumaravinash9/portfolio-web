@@ -72,27 +72,31 @@ const services = [
     title: "Platform & Cloud",
     items: ["CI/CD & developer tooling", "Cloud-native infra (GCP / OCI / AWS)", "Observability & reliability", "Performance & cost optimization"],
   },
+  {
+    k: "SC",
+    title: "Software Consulting",
+    items: ["Scalable architecture & system design foundations", "Tech strategy, audits & roadmaps", "Build-vs-buy & stack decisions", "Foundations that scale as you grow"],
+  },
 ];
 
 const cases = [
+  {
+    title: "AI-Powered DEXPI Extraction",
+    stack: "Python · OpenCV · PaddleOCR · Gemini Vision · FastAPI · Celery · Redis",
+    body: "P&ID and piping isometric drawings are among the hardest documents in engineering to read — thousands of symbols, weld points, valves, dimensions, and BOM entries packed onto a single sheet, encoded to the DEXPI standard and near-impossible to digitize by hand without errors. We built an AI system that extracts this structured data straight from the drawings, combining OCR, vision, and multimodal LLMs to detect symbols, reconstruct topology, and validate relationships on an async, fault-tolerant pipeline. This is exactly the kind of complex P&ID problem we solve.",
+    by: "Avinash Kumar",
+    demo: "/pid-extraction-report.html",
+    demoLabel: "View extraction report",
+    demo2: "/loop93-iwl-report.html",
+    demo2Label: "View IWL extraction",
+  },
   {
     title: "Enterprise Knowledge Intelligence Platform",
     stack: "Python · FastAPI · PostgreSQL · pgvector · Qdrant · Gemini · OCR",
     body: "A production RAG platform to ingest, index, and query enterprise engineering documents — P&IDs, ISO drawings, technical manuals. Semantic chunking, hybrid retrieval (BM25 + vector), reranking, and provenance tracking for traceable answers.",
     by: "Avinash Kumar",
-    demo: DEMO_URL,
-  },
-  {
-    title: "AI-Powered DEXPI Extraction",
-    stack: "Python · OpenCV · PaddleOCR · Gemini Vision · FastAPI · Celery · Redis",
-    body: "An AI system that extracts structured data — spools, welds, valves, dimensions, BOM — from piping isometric drawings. Combines OCR, vision, and multimodal LLMs to detect symbols, reconstruct topology, and validate relationships on an async, fault-tolerant pipeline.",
-    by: "Avinash Kumar",
-  },
-  {
-    title: "Real-Time Embedding & Personalization Pipeline",
-    stack: "Python · Kafka · Redis · Faiss · TensorFlow · GCP",
-    body: "High-throughput embedding pipelines generating and serving user-profile embeddings for recommendation models. ANN vector retrieval (Faiss) with real-time feature serving for low-latency inference at production scale.",
-    by: "Avinash Kumar",
+    demo: "/ip-architecture.html",
+    demoLabel: "Live demo",
   },
   {
     title: "Monumento — AR Monument Recognition",
@@ -101,6 +105,12 @@ const cases = [
     by: "Avinash Kumar",
     demo: "https://github.com/AOSSIE-Org/Monumento",
     demoLabel: "View on GitHub",
+  },
+  {
+    title: "Real-Time Embedding & Personalization Pipeline",
+    stack: "Python · Kafka · Redis · Faiss · TensorFlow · GCP",
+    body: "High-throughput embedding pipelines generating and serving user-profile embeddings for recommendation models. ANN vector retrieval (Faiss) with real-time feature serving for low-latency inference at production scale.",
+    by: "Avinash Kumar",
   },
   {
     title: "Doc-QA Agent — LLM Document Question Answering",
@@ -417,9 +427,9 @@ export default function App() {
       <section id="services" className="border-y border-line bg-surface-2">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">What we can build for you</h2>
-          <p className="mt-3 max-w-xl text-ink-soft">Combined capabilities across AI, backend, and platform engineering.</p>
+          <p className="mt-3 max-w-xl text-ink-soft">Combined capabilities across AI, backend, platform engineering, and software consulting.</p>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {services.map((s, i) => (
               <motion.div
                 key={s.title}
@@ -456,11 +466,21 @@ export default function App() {
               <h3 className="font-display text-xl font-bold tracking-tight">{c.title}</h3>
               <div className="mt-1 font-mono text-[12px] text-cobalt">{c.stack}</div>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft">{c.body}</p>
-              {c.demo && (
-                <a href={c.demo} target="_blank" rel="noopener noreferrer" className="group mt-4 inline-flex items-center gap-2 rounded-lg border border-cobalt px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wide text-cobalt transition hover:bg-cobalt hover:text-white">
-                  {c.demoLabel || "Live demo"}
-                  <span className="transition group-hover:translate-x-0.5">↗</span>
-                </a>
+              {(c.demo || c.demo2) && (
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {c.demo && (
+                    <a href={c.demo} target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 rounded-lg border border-cobalt px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wide text-cobalt transition hover:bg-cobalt hover:text-white">
+                      {c.demoLabel || "Live demo"}
+                      <span className="transition group-hover:translate-x-0.5">↗</span>
+                    </a>
+                  )}
+                  {c.demo2 && (
+                    <a href={c.demo2} target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 rounded-lg border border-cobalt px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wide text-cobalt transition hover:bg-cobalt hover:text-white">
+                      {c.demo2Label || "Live demo"}
+                      <span className="transition group-hover:translate-x-0.5">↗</span>
+                    </a>
+                  )}
+                </div>
               )}
             </motion.article>
           ))}

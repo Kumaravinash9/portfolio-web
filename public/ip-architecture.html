@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingestion Pipeline — Presentation &amp; Full Architecture</title>
+<style>
+  :root{--bg:#f6f7f9;--panel:#fff;--ink:#0f141b;--muted:#586576;--line:#e3e7ee;
+    --brand:#4f46e5;--brand-soft:#eef0fe;--ok:#0f766e;--ok-soft:#e5f4f1;--warn:#b45309;--warn-soft:#fbf1e2;
+    --bad:#b91c1c;--bad-soft:#fbe9e9;--accent:#0369a1;--accent-soft:#e5f2fb;--code:#0b1020;--codeink:#c8d3e6;}
+  html.dark{--bg:#0a0d13;--panel:#111722;--ink:#e9edf4;--muted:#98a4b6;--line:#212a38;
+    --brand:#818cf8;--brand-soft:#1a2030;--ok:#5eead4;--ok-soft:#0f231f;--warn:#fbbf24;--warn-soft:#241c0e;
+    --bad:#fca5a5;--bad-soft:#241315;--accent:#7dd3fc;--accent-soft:#0c1c28;--code:#0a0f18;--codeink:#c8d3e6;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;
+    font-family:'Inter',ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .muted{color:var(--muted)}
+  ::selection{background:var(--brand);color:#fff}
+  a{color:inherit}
+
+  .shell{max-width:1360px;margin:0 auto}
+  @media(min-width:1024px){.shell{display:flex}}
+  .side{background:var(--panel);border-bottom:1px solid var(--line);z-index:20}
+  @media(min-width:1024px){.side{width:16.5rem;flex-shrink:0;height:100vh;position:sticky;top:0;overflow-y:auto;border-bottom:none;border-right:1px solid var(--line)}}
+  .side-inner{padding:20px}
+  .brandline{display:flex;align-items:center;justify-content:space-between}
+  .brandtag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .themebtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;padding:4px 9px;font-size:12px;cursor:pointer}
+  .side-title{font-size:1.02rem;font-weight:750;line-height:1.25;margin-top:6px;letter-spacing:-.01em}
+  .side-sub{font-size:12px;color:var(--muted);margin-top:8px}
+  nav{padding:0 12px 24px}
+  .nav-part{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 12px 4px}
+  .nav-link{display:block;border-radius:9px;border:1px solid transparent;padding:6px 12px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;margin-bottom:1px}
+  .nav-link:hover{color:var(--ink)}
+  .nav-link.active{color:var(--brand);border-color:var(--brand);background:var(--brand-soft)}
+
+  .main{flex:1;min-width:0;padding:26px 22px}
+  @media(min-width:640px){.main{padding:34px 34px}}
+  @media(min-width:1024px){.main{padding:40px 52px}}
+  .hero{border-bottom:2px solid var(--ink);padding-bottom:26px;margin-bottom:8px}
+  .hero h1{font-size:2.1rem;font-weight:780;letter-spacing:-.02em;line-height:1.12}
+  .hero .sub{font-size:1.04rem;color:var(--muted);margin-top:12px;max-width:70ch}
+  .chips-hero{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+  .chip-hero{border:1px solid var(--line);border-radius:7px;padding:4px 11px;font-size:12.5px;color:var(--muted);background:var(--panel)}
+
+  section{padding:40px 0 12px;scroll-margin-top:16px}
+  section+section{border-top:1px solid var(--line)}
+  .partbar{margin:8px 0 -8px;display:flex;align-items:center;gap:12px}
+  .partbar .pb{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--brand);border-radius:6px;padding:4px 12px}
+  .partbar .pl{font-size:13px;color:var(--muted);font-weight:600}
+  h2{font-size:1.5rem;font-weight:750;letter-spacing:-.01em;margin-bottom:12px;display:flex;align-items:baseline;gap:13px}
+  h2 .n{font-family:ui-monospace,Menlo,monospace;font-size:.95rem;color:var(--brand);font-weight:700}
+  h3{font-size:1.08rem;font-weight:700;margin:24px 0 8px;color:var(--ink)}
+  h4{font-size:.95rem;font-weight:700;margin:4px 0}
+  p{margin:11px 0}
+  strong,b{font-weight:700}
+
+  /* Spoken narration */
+  .script{border-left:3px solid var(--brand-soft);padding:2px 0 2px 16px;margin:14px 0}
+  .script p{margin:9px 0;font-size:1.02rem;line-height:1.72}
+  .mic{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brand);margin:2px 0 6px}
+
+  .callout{border-left:3px solid var(--brand);background:var(--brand-soft);padding:15px 20px;border-radius:0 10px 10px 0;margin:16px 0;font-size:1.05rem;font-weight:600}
+  .callout.big{font-size:1.14rem}
+  .bad-box{border-left:3px solid var(--bad);background:var(--bad-soft);border-radius:0 9px 9px 0;padding:11px 16px;margin:12px 0}
+  .good-box{border-left:3px solid var(--ok);background:var(--ok-soft);border-radius:0 9px 9px 0;padding:11px 16px;margin:12px 0}
+  .bad-box b{color:var(--bad)} .good-box b{color:var(--ok)}
+
+  /* Vertical flow chain */
+  .chainwrap{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;margin:16px 0}
+  .chain{width:fit-content;min-width:200px;margin:4px 0}
+  .cnode{border:1px solid var(--line);border-radius:9px;padding:9px 16px;background:var(--panel);text-align:center;font-weight:600;font-size:.9rem}
+  .cnode.hl{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+  .cnode.bad{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+  .cnode.good{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+  .cnode small{display:block;font-weight:500;color:var(--muted);font-size:.76rem;margin-top:1px}
+  .cdown{text-align:center;color:var(--muted);font-size:15px;padding:3px 0}
+  .chaincap{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px;text-align:center}
+
+  /* Small tables */
+  .tbl{border-collapse:collapse;margin:12px 0;font-size:.9rem;width:100%;max-width:640px}
+  .tbl th{background:var(--brand-soft);color:var(--brand);text-align:left;padding:8px 12px;font-size:.78rem;letter-spacing:.02em;border:1px solid var(--line);font-weight:700}
+  .tbl td{padding:8px 12px;border:1px solid var(--line)}
+  .tblwrap{overflow-x:auto}
+
+  /* Chunk split visual */
+  .split{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:14px 0}
+  .chunkbox{border:1px dashed var(--bad);background:var(--bad-soft);border-radius:9px;padding:10px 14px;font-size:.85rem;min-width:150px}
+  .chunkbox .cl{font-size:.68rem;font-weight:800;text-transform:uppercase;color:var(--bad);letter-spacing:.05em;margin-bottom:5px}
+  .scissors{font-size:20px;color:var(--muted)}
+
+  /* Code / JSON / SQL */
+  .code{background:var(--code);color:var(--codeink);border-radius:10px;padding:14px 16px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84rem;line-height:1.55;overflow-x:auto;margin:12px 0;white-space:pre}
+  .code .k{color:#7dd3fc} .code .s{color:#a7f3d0} .code .c{color:#94a3b8}
+
+  /* Chips / registries */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .chip{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 13px;font-size:.86rem;font-weight:600}
+  .chip.reg{border-left:3px solid var(--brand)}
+  .chip.store{border-left:3px solid var(--accent)}
+
+  /* Cards / grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:13px;margin:16px 0}
+  .card{border:1px solid var(--line);border-radius:11px;padding:15px 17px;background:var(--panel)}
+  .card b{display:block;margin-bottom:5px}
+  .card span{color:var(--muted);font-size:.92rem}
+
+  /* Comparison */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  @media(max-width:720px){.compare{grid-template-columns:1fr}}
+  .col{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--panel)}
+  .col.t{border-top:4px solid var(--bad)} .col.o{border-top:4px solid var(--ok)}
+  .col h4{font-size:1rem} .col.t h4{color:var(--bad)} .col.o h4{color:var(--ok)}
+  .col ul{list-style:none;margin:10px 0 0}
+  .col li{padding:5px 0 5px 22px;position:relative;font-size:.9rem}
+  .col.t li::before{content:"\2717";position:absolute;left:0;color:var(--bad);font-weight:700}
+  .col.o li::before{content:"\2713";position:absolute;left:0;color:var(--ok);font-weight:700}
+
+  /* MASTER end-to-end diagram */
+  .master{max-width:660px;margin:20px auto;padding:6px}
+  .mstage{display:flex;align-items:center;gap:13px;border:1px solid var(--line);border-radius:11px;padding:10px 15px;background:var(--panel)}
+  .mstage.key{border-left:3px solid var(--brand);background:var(--brand-soft)}
+  .mstage.end{border-left:3px solid var(--ok);background:var(--ok-soft)}
+  .mstage.up{border-left:3px solid var(--ink)}
+  .mbadge{width:30px;height:30px;border-radius:999px;background:var(--brand);color:#fff;font-weight:800;font-size:12.5px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .mbadge.up{background:var(--ink)} .mbadge.end{background:var(--ok)}
+  .mtt{font-weight:700;font-size:.93rem}
+  .mtt small{display:block;color:var(--muted);font-weight:500;font-size:.79rem;margin-top:1px}
+  .mstage.key .mtt small{color:var(--brand)}
+  .mdown{text-align:center;color:var(--muted);font-size:16px;padding:4px 0}
+  .mbranch{display:grid;gap:8px;margin:8px 0}
+  .mbranch.b3{grid-template-columns:repeat(3,1fr)}
+  .mbranch.b6{grid-template-columns:repeat(3,1fr)}
+  .mbranch.b5{grid-template-columns:repeat(5,1fr)}
+  @media(max-width:640px){.mbranch.b5,.mbranch.b6{grid-template-columns:repeat(2,1fr)}.mbranch.b3{grid-template-columns:1fr}}
+  .mbox{border:1px dashed var(--accent);border-radius:8px;padding:8px 6px;text-align:center;font-size:.76rem;font-weight:700;color:var(--accent);background:var(--panel)}
+  .mnote{text-align:center;font-size:11px;color:var(--muted);margin:4px 0 2px}
+  /* Full-system diagram (Part A + KB + Part B + cross-cutting) */
+  .mband{display:flex;align-items:center;gap:10px;margin:22px 0 8px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+  .mband::before{content:"";flex:0 0 16px;height:3px;border-radius:2px;background:var(--brand)}
+  .mband::after{content:"";flex:1;height:1px;background:var(--line)}
+  .mband.b{color:var(--accent)} .mband.b::before{background:var(--accent)}
+  .mband.x{color:var(--muted)} .mband.x::before{background:var(--muted)}
+  .mstage.q{border-left:3px solid var(--accent);background:var(--accent-soft)}
+  .mstage.q .mtt small{color:var(--accent)}
+  .mbadge.q{background:var(--accent)}
+  .mbranch.b2{grid-template-columns:1fr 1fr}
+  @media(max-width:640px){.mbranch.b2{grid-template-columns:1fr}}
+  .kbbox{border:2px solid var(--ink);border-radius:12px;padding:13px 15px;margin:6px 0;background:var(--panel)}
+  .kbt{font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;text-align:center;margin-bottom:9px;color:var(--ink)}
+  .xbox{border:1px dashed var(--muted);border-radius:11px;padding:6px 14px 12px;margin:6px 0;background:var(--bg)}
+
+  /* Status banner (this is a proposal, not built) */
+  .statusbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0;font-size:.95rem;font-weight:600}
+  .statusbar .lead{font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:.72rem;color:var(--warn)}
+
+  /* Tech-maturity tags */
+  .tag{display:inline-block;font-size:.6rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+  .tag.plan{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn)}
+  .tag.cand{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:10px 0 0;font-size:.8rem;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+
+  /* Pipeline-at-a-glance flow */
+  .flowline{display:flex;flex-wrap:wrap;align-items:center;gap:7px 5px;margin:16px 0;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  .fstep{border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:.82rem;font-weight:650;background:var(--bg);white-space:nowrap}
+  .fstep.up{border-left:3px solid var(--ink)}
+  .fstep.key{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+  .fstep.end{border-left:3px solid var(--ok);background:var(--ok-soft);color:var(--ok)}
+  .farrow{color:var(--muted);font-size:14px;font-weight:700}
+
+  footer{border-top:2px solid var(--ink);margin-top:40px;padding:22px 0 48px;color:var(--muted);font-size:13px}
+  @media(max-width:640px){.hero h1{font-size:1.6rem}}
+  @media print{.side{display:none}html{scroll-behavior:auto}section{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <aside class="side">
+    <div class="side-inner">
+      <div class="brandline">
+        <div class="brandtag">Pathnovo &middot; Ingestion</div>
+        <button id="themeBtn" class="themebtn" aria-label="Toggle theme">&#9790;</button>
+      </div>
+      <div class="side-title">Ingestion Pipeline — Presentation &amp; Full Architecture</div>
+      <div class="side-sub">Plain-language walkthrough of the ingestion pipeline, ending with the complete end-to-end flow diagram.</div>
+    </div>
+    <nav>
+      <div class="nav-part">Part 1 &middot; The problem &amp; setup</div>
+      <a class="nav-link" href="#overview">Pipeline at a glance</a>
+      <a class="nav-link" href="#intro">Introduction</a>
+      <a class="nav-link" href="#whyrag">Why not normal RAG?</a>
+      <a class="nav-link" href="#philosophy">Our philosophy</a>
+      <a class="nav-link" href="#highlevel">High-level architecture</a>
+      <a class="nav-link" href="#example">The running example</a>
+      <a class="nav-link" href="#stage0">Stage 0 &middot; Intake</a>
+      <a class="nav-link" href="#stage1">Stage 1 &middot; Classify</a>
+      <a class="nav-link" href="#stage2">Stage 2 &middot; Parse &amp; layout</a>
+      <div class="nav-part">Part 2 &middot; The intelligence layer</div>
+      <a class="nav-link" href="#stage3">Stage 3 &middot; Page Chunking</a>
+      <a class="nav-link" href="#stage4">Stage 4 &middot; Extraction</a>
+      <a class="nav-link" href="#normalize">Unit normalization</a>
+      <a class="nav-link" href="#validation">Stage 4.5 &middot; Validation</a>
+      <a class="nav-link" href="#stage5">Stage 5 &middot; Revisions</a>
+      <div class="nav-part">Part 3 &middot; Search &amp; the payoff</div>
+      <a class="nav-link" href="#stage6">Stage 6 &middot; One-DB Indexing</a>
+      <a class="nav-link" href="#stage7">Stage 7 &middot; Evaluation</a>
+      <a class="nav-link" href="#fullflow">Complete flow diagram</a>
+      <a class="nav-link" href="#fullsystem">Full system (with retrieval)</a>
+      <a class="nav-link" href="#whybetter">Why better than RAG</a>
+      <a class="nav-link" href="#future">Future scope &amp; close</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="hero">
+      <h1>Document Intelligence Ingestion Pipeline</h1>
+      <div class="sub">A plain-language walkthrough of a <b>proposed</b> ingestion architecture for EPC governing documents (SOW, PMS, HMB, philosophies, HAZOP, SIL). Top to bottom: the problem, why fixed-token RAG struggles here, then all eight stages, ending with the complete end-to-end flow and the full-system view.</div>
+      <div class="chips-hero">
+        <span class="chip-hero">Proposed design</span>
+        <span class="chip-hero">Simple visuals per stage</span>
+        <span class="chip-hero">Full flow diagram</span>
+        <span class="chip-hero">Ingestion only</span>
+      </div>
+    </header>
+
+  <!-- ============ STATUS + OVERVIEW ============ -->
+  <section id="overview" style="padding-top:24px">
+    <div class="statusbar">
+      <span class="lead">Status</span>
+      <span>This is a proposed architecture, nothing here is built yet. Named technologies are marked <span class="tag plan">Planned</span> or <span class="tag cand">Candidate</span> so the build status stays clear.</span>
+    </div>
+    <h2><span class="n">0</span>Pipeline at a glance</h2>
+    <div class="script"><p>The whole proposed flow in one view, upload to knowledge base. The two highlighted steps are where this design differs most from traditional RAG.</p></div>
+    <div class="flowline">
+      <span class="fstep up">Upload</span><span class="farrow">&rarr;</span>
+      <span class="fstep">Registration</span><span class="farrow">&rarr;</span>
+      <span class="fstep">Classification</span><span class="farrow">&rarr;</span>
+      <span class="fstep">Layout Understanding</span><span class="farrow">&rarr;</span>
+      <span class="fstep">Page-Based Chunking</span><span class="farrow">&rarr;</span>
+      <span class="fstep key">Typed Extraction</span><span class="farrow">&rarr;</span>
+      <span class="fstep">Validation</span><span class="farrow">&rarr;</span>
+      <span class="fstep">Revision Handling</span><span class="farrow">&rarr;</span>
+      <span class="fstep key">One-DB Indexing</span><span class="farrow">&rarr;</span>
+      <span class="fstep end">Knowledge Base</span>
+    </div>
+    <div class="legend">
+      <span><span class="tag plan">Planned</span> intended component, not yet built</span>
+      <span><span class="tag cand">Candidate</span> technology under evaluation, not yet chosen</span>
+    </div>
+  </section>
+
+  <!-- ============ PART 1 ============ -->
+  <section id="intro">
+    <div class="partbar"><span class="pb">Part 1</span><span class="pl">The problem &amp; the setup</span></div>
+    <h2><span class="n">1</span>Introduction</h2>
+    <div class="script">
+      <p>This is the architecture of our Document Intelligence Ingestion Pipeline for EPC engineering documents. Every design decision below comes directly from the problem it solves, so we start with the problem.</p>
+      <p>In EPC projects, engineers work with large governing documents: SOWs, PMS, HMBs, design philosophies, HAZOP reports, SIL reports. Each one can be 200 to 800 pages long.</p>
+      <p>Now imagine a piping engineer wants to know: <b>"Is a 4-inch Gate Valve allowed in Pipe Class A1A?"</b> Or a process engineer wants: <b>"What is the pressure, temperature and composition of Stream 105?"</b></p>
+      <p>Today the workflow is completely manual. The engineer opens a PDF, searches with Ctrl+F, checks different revisions, reads multiple tables, verifies footnotes, and finally gets an answer. Sometimes it takes 15 minutes, sometimes an hour, and sometimes they still end up using an outdated revision.</p>
+      <p>Our objective is simple: engineers should ask a question in plain language and get an accurate answer, with complete traceability back to the source document.</p>
+    </div>
+    <div class="callout">The goal: replace "open the PDF and Ctrl+F for an hour" with "ask a question, get a cited, current answer."</div>
+  </section>
+
+  <section id="whyrag">
+    <h2><span class="n">2</span>Why not just use normal RAG?</h2>
+    <div class="script">
+      <p>The obvious question is: why not simply use a traditional RAG pipeline? Because engineering documents are fundamentally different from normal documents. A normal RAG pipeline looks like this.</p>
+    </div>
+    <div class="chainwrap">
+      <div class="chain">
+        <div class="chaincap">Traditional RAG</div>
+        <div class="cnode">PDF</div><div class="cdown">&darr;</div>
+        <div class="cnode">Extract text</div><div class="cdown">&darr;</div>
+        <div class="cnode">Chunk every 500 tokens</div><div class="cdown">&darr;</div>
+        <div class="cnode">Generate embeddings</div><div class="cdown">&darr;</div>
+        <div class="cnode">Vector database</div><div class="cdown">&darr;</div>
+        <div class="cnode">LLM</div>
+      </div>
+    </div>
+    <div class="script"><p>This approach often struggles with engineering documents, because tables, notes, and clauses can get split across chunks. Take a PMS table:</p></div>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>Pipe Class</th><th>Valve</th><th>Temperature</th><th>Pressure</th><th>Notes</th></tr></thead>
+      <tbody><tr><td>A1A</td><td>Gate Valve</td><td>300&deg;C</td><td>150#</td><td>See Note 4</td></tr></tbody>
+    </table></div>
+    <div class="script"><p>Now imagine the chunker splits this one table into two chunks:</p></div>
+    <div class="split">
+      <div class="chunkbox"><div class="cl">Chunk One</div>Pipe Class &middot; Valve &middot; Temperature</div>
+      <div class="scissors">&#9986;</div>
+      <div class="chunkbox"><div class="cl">Chunk Two</div>Pressure &middot; Notes</div>
+    </div>
+    <div class="script"><p>Suppose Note 4 says <b>"Gate Valve is NOT permitted above 250&deg;C."</b> But that note went into the other chunk. When the LLM retrieves only Chunk One, it confidently tells the engineer:</p></div>
+    <div class="bad-box"><b>Wrong answer:</b> "Yes, Gate Valve is allowed." The exception was in a different chunk. The problem was not the LLM. The problem was our ingestion strategy.</div>
+    <div class="script"><p>Same thing with an HMB. If a stream row gets divided, the Pressure lands in one chunk and the Flow in another, so Stream 105 no longer exists as a complete record. Again, a wrong answer.</p></div>
+    <div class="callout big">So our philosophy is: engineering documents should never be treated as plain text. They should be treated as structured engineering knowledge.</div>
+  </section>
+
+  <section id="philosophy">
+    <h2><span class="n">3</span>Our core philosophy</h2>
+    <div class="callout big">Spend compute once during ingestion, save compute during every query.</div>
+    <div class="script">
+      <p>Instead of asking the LLM to understand the document every single time somebody asks a question, we spend the heavy compute <b>once</b> during ingestion, understanding the document completely. For a typical digital document that is on the order of tens of minutes; a large, fully scanned document can take longer. Real timings come from the pilot, and because the work runs in the background, once per document revision, nobody is ever waiting on it.</p>
+      <p>Once that is done, every future query becomes faster, more accurate, more explainable, and much cheaper.</p>
+    </div>
+    <div class="chips">
+      <span class="chip">Faster</span><span class="chip">More accurate</span><span class="chip">More explainable</span><span class="chip">Much cheaper</span>
+    </div>
+  </section>
+
+  <section id="highlevel">
+    <h2><span class="n">4</span>High-level architecture</h2>
+    <div class="script"><p>Our overall architecture looks like this. Today's discussion is only about the first half, the ingestion pipeline, because if ingestion is wrong, everything downstream becomes wrong.</p></div>
+    <div class="chainwrap"><div class="chain" style="min-width:260px">
+      <div class="cnode hl">User uploads document</div><div class="cdown">&darr;</div>
+      <div class="cnode hl">Ingestion pipeline<small>today's topic</small></div><div class="cdown">&darr;</div>
+      <div class="cnode">Knowledge base</div><div class="cdown">&darr;</div>
+      <div class="cnode">Query engine</div><div class="cdown">&darr;</div>
+      <div class="cnode">Answer generation</div>
+    </div></div>
+  </section>
+
+  <section id="example">
+    <h2><span class="n">5</span>One example we'll use throughout</h2>
+    <div class="script"><p>One example is used throughout to keep this concrete. Suppose a client uploads three documents:</p></div>
+    <div class="chips"><span class="chip">SOW.pdf</span><span class="chip">PMS.pdf</span><span class="chip">HMB.pdf</span></div>
+    <div class="script"><p>By the end of our ingestion pipeline, these three PDFs are no longer treated as documents. They become structured engineering databases:</p></div>
+    <div class="chips">
+      <span class="chip reg">Obligation Registry</span><span class="chip reg">Material Registry</span><span class="chip reg">Stream Registry</span>
+      <span class="chip reg">Rule Registry</span><span class="chip store">Provenance</span><span class="chip store">Revision Links</span>
+      <span class="chip store">Semantic Index</span><span class="chip store">Keyword Index</span>
+    </div>
+    <div class="script"><p>So instead of searching PDFs, we simply query these registries.</p></div>
+  </section>
+
+  <section id="stage0">
+    <h2><span class="n">6</span>Stage 0 — Intake &amp; Registration</h2>
+    <div class="script">
+      <p>The first stage is Intake and Registration. One important thing to notice: the very first thing we do is <b>not</b> OCR. We don't parse the document, we don't generate embeddings. We first register the document inside the platform.</p>
+      <p>Why? Imagine a customer accidentally uploads the same SOW five times. Without registration, we would process it five times. That is wasted compute.</p>
+    </div>
+    <h3>Every document gets a unique identity</h3>
+    <div class="chips">
+      <span class="chip">Document ID</span><span class="chip">Project ID</span><span class="chip">Revision</span><span class="chip">Document Number</span>
+      <span class="chip">Upload Timestamp</span><span class="chip">Source</span><span class="chip">Uploader</span>
+    </div>
+    <h3>Hashing (a fingerprint for the file)</h3>
+    <div class="script"><p>We generate a SHA-256 hash of the document. Think of it as a fingerprint. Suppose today's file produces a hash like <span class="mono">A1B9C8F7...</span> Tomorrow the client uploads the same file, we hash it again, and if the two hashes are identical we immediately know this document is already processed. So we reuse the existing results. No duplicate computation.</p></div>
+    <h3>Metadata (these become search filters later)</h3>
+    <div class="chips">
+      <span class="chip">Client Name</span><span class="chip">Project Name</span><span class="chip">Revision Number</span>
+      <span class="chip">Issue Date</span><span class="chip">Discipline</span><span class="chip">Document Number</span>
+    </div>
+    <div class="good-box">Because of metadata, instead of "Show Stream 105" an engineer can ask <b>"Show Stream 105, only from Revision C"</b> or <b>"only from Project ABC."</b> Without metadata, that is impossible.</div>
+    <h3>MDR reconciliation <span class="tag plan">Later phase</span></h3>
+    <div class="script"><p>If the project already has an MDR (the Master Document Register), we can reconcile expected vs received vs successfully ingested, so project managers see which documents are still missing. This is a <b>dashboard feature layered on later</b>, not part of the core ingestion path, so it never blocks a single document from being processed.</p></div>
+    <div class="chainwrap"><div class="chain">
+      <div class="cnode">Expected documents</div><div class="cdown">&darr;</div>
+      <div class="cnode">Received documents</div><div class="cdown">&darr;</div>
+      <div class="cnode good">Successfully ingested</div>
+    </div></div>
+    <div class="callout">Stage 0 is deliberately thin: hash, identity, metadata. Just enough to prepare the document before any AI processing begins.</div>
+  </section>
+
+  <section id="stage1">
+    <h2><span class="n">7</span>Stage 1 — Document Classification</h2>
+    <div class="script"><p>Now classification. The first question we answer is: what exactly is this document? We keep this cheap. The default comes from the <b>upload form and filename</b>, confirmed by <b>one small LLM call on the first few pages</b> (sent as page images, so scanned documents classify without waiting for OCR), with a <b>manual override</b> the user can always set. No heavy classification subsystem.</p></div>
+    <div class="chips">
+      <span class="chip">SOW</span><span class="chip">PMS</span><span class="chip">HMB</span><span class="chip">Design Philosophy</span>
+      <span class="chip">HAZOP</span><span class="chip">SIL</span><span class="chip">MDR</span>
+    </div>
+    <h3>Why classification matters: each type needs a different schema</h3>
+    <div class="grid">
+      <div class="card"><b>If it's an SOW</b><span>I'm not looking for stream values. I want obligations: "Contractor shall submit...", "Vendor shall provide...". Schema: Responsible Party, Deliverable, Milestone, Clause.</span></div>
+      <div class="card"><b>If it's a PMS</b><span>Now I need Pipe Classes, Materials, Pressure Ratings, Temperature Limits, Allowed Components. A completely different schema.</span></div>
+      <div class="card"><b>If it's an HMB</b><span>Everything changes again: Stream Numbers, Pressure, Temperature, Flow, Composition. Different prompt, different schema, different registry.</span></div>
+    </div>
+    <div class="script"><p>So classification decides which pipeline should process the document.</p></div>
+    <h3>Edge cases: multi-volume and mixed files <span class="tag plan">Manual override in v1</span></h3>
+    <div class="script"><p>Two harder cases exist. <b>Multi-volume:</b> one SOW arrives as Volume I, II, III plus appendices that should be grouped into one logical document. <b>Mixed file:</b> a single PDF whose first 150 pages are SOW and next 200 are PMS. Auto-detecting these reliably is genuinely hard and genuinely rare, so in v1 we handle them through the <b>manual override</b>: the reviewer groups the volumes or marks the split. This is a designed step in the upload flow, not an afterthought: a multi-file upload asks "are these volumes of one document?" right at upload, so grouping is one click while the uploader still has the context. The common case (one file, one type) stays fully automatic and loses nothing, and auto-detection (filename patterns, MDR entries, first-page titles) can be layered in later without changing anything downstream.</p></div>
+    <div class="chips"><span class="chip">Volume I</span><span class="chip">Volume II</span><span class="chip">Volume III</span><span class="chip">Appendices</span><span class="chip reg">&rarr; grouped by reviewer</span></div>
+    <div class="callout">After Stage 1, the system knows what kind of engineering knowledge to extract.</div>
+  </section>
+
+  <section id="stage2">
+    <h2><span class="n">8</span>Stage 2 — Parsing &amp; Layout Understanding</h2>
+    <div class="script">
+      <p>This is one of the most challenging stages: understanding document layout. The biggest mistake people make is assuming every PDF is just text. Engineering PDFs are far more complicated.</p>
+      <p>Some are digital, some are scanned. Some have landscape tables, engineering drawings, handwritten notes, merged cells, rotated pages, or no text layer at all. So instead of one parser, our parsing pipeline is adaptive.</p>
+    </div>
+    <div class="chainwrap"><div class="chain">
+      <div class="cnode">PDF</div><div class="cdown">&darr;</div>
+      <div class="cnode hl">Layout Parser</div><div class="cdown">&darr;</div>
+      <div class="cnode">OCR Engine (if required)</div><div class="cdown">&darr;</div>
+      <div class="cnode">Vision Parser</div><div class="cdown">&darr;</div>
+      <div class="cnode good">Structured layout</div>
+    </div></div>
+    <div class="legend"><span>The names above describe <b>what each step does</b>, not which library does it. Current candidates &mdash; Layout: Docling &middot; OCR: Tesseract &middot; Vision: GPT-4o Vision. Swapping a candidate never changes the architecture.</span></div>
+    <h3>Layout Parser — understands structure, not just text <span class="tag plan">Planned</span> <span class="tag cand">Docling</span></h3>
+    <div class="script"><p>The first component is the layout parser (current candidate: Docling). It does not simply extract text, it understands document structure. For every page it identifies:</p></div>
+    <div class="chips">
+      <span class="chip">Headings</span><span class="chip">Sections</span><span class="chip">Paragraphs</span><span class="chip">Tables</span>
+      <span class="chip">Images</span><span class="chip">Headers</span><span class="chip">Footers</span><span class="chip">Reading order</span>
+    </div>
+    <div class="script"><p>So instead of one giant block of text, we now have a structured representation. Take a PMS table:</p></div>
+    <div class="tblwrap"><table class="tbl">
+      <thead><tr><th>Pipe Class</th><th>Valve</th><th>Temperature</th><th>Notes</th></tr></thead>
+      <tbody><tr><td>A1A</td><td>Gate Valve</td><td>300&deg;C</td><td>See Note 4</td></tr></tbody>
+    </table></div>
+    <div class="good-box">If we only extract text, the link between the columns disappears. The layout parser preserves it: it knows <b>this value belongs to this column, this note belongs to this row.</b></div>
+    <h3>OCR Engine — for scanned pages <span class="tag plan">Planned</span> <span class="tag cand">Tesseract</span></h3>
+    <div class="script"><p>If the layout parser detects a page has no text layer, we switch to the OCR engine automatically. Our current candidate is Tesseract, because many EPC and government documents are scanned and sometimes contain both English and Hindi. It converts the image into machine-readable text.</p></div>
+    <h3>Vision Parser — for tables trapped in images <span class="tag plan">Planned</span> <span class="tag cand">GPT-4o Vision</span></h3>
+    <div class="script"><p>But OCR alone is not enough. In an HMB, stream tables are sometimes embedded inside diagrams or complex scanned images. The OCR engine can read the words but cannot understand the table structure. So we use a vision parser: a vision-language model. It understands visual relationships: rows, columns, merged cells, branch matrices, engineering diagrams, table hierarchies. It looks at the page almost the way a human engineer would.</p></div>
+    <div class="good-box"><b>How we de-risk this stage:</b> the layout parser, OCR engine, and vision parser are where most of the technical risk in this design lives, so they get proven first, not last. Week one of the build is a parsing spike: run the candidate parsers on real pages from our own corpus (SOW, PMS, HMB; scanned and digital), score table-cell accuracy against hand-checked pages, and pick winners from the data. Nothing downstream changes based on which parser wins, only the internals of this stage.</div>
+    <h3>Output of Stage 2</h3>
+    <div class="script"><p>After Stage 2 the PDF is no longer just a PDF. It is a structured document model:</p></div>
+    <div class="chainwrap"><div class="chain">
+      <div class="cnode">Document</div><div class="cdown">&darr;</div>
+      <div class="cnode">Chapter</div><div class="cdown">&darr;</div>
+      <div class="cnode">Section</div><div class="cdown">&darr;</div>
+      <div class="cnode">Clause</div><div class="cdown">&darr;</div>
+      <div class="cnode">Table</div><div class="cdown">&darr;</div>
+      <div class="cnode">Row</div><div class="cdown">&darr;</div>
+      <div class="cnode">Cell</div><div class="cdown">&darr;</div>
+      <div class="cnode">Footnote</div>
+    </div></div>
+    <div class="callout">This structured model feeds the next two stages: Page-Based Chunking (Stage 3) for search, and Typed Extraction (Stage 4), where the real intelligence lives.</div>
+  </section>
+
+  <!-- ============ PART 2 ============ -->
+  <section id="stage3">
+    <div class="partbar"><span class="pb">Part 2</span><span class="pl">The intelligence layer (the key differentiator)</span></div>
+    <h2><span class="n">9</span>Stage 3 — Page-Based Chunking with Metadata</h2>
+    <div class="script">
+      <p>So far we have only understood the document. No embeddings, no vector database, and no LLM calls yet beyond Stage 1's small classification check. Now we cut the document into chunks, and here we deliberately keep things simple.</p>
+      <p>Instead of complex clause-level segmentation, we chunk by page: <b>one page = one chunk</b>. Pages are the natural unit engineers already think in ("see page 87"), the logic is predictable, fast to build, and easy to debug and maintain.</p>
+    </div>
+    <div class="chainwrap">
+      <div class="chain">
+        <div class="chaincap">Traditional RAG splits blindly</div>
+        <div class="cnode bad">500 tokens</div><div class="cdown">&darr;</div>
+        <div class="cnode bad">500 tokens</div><div class="cdown">&darr;</div>
+        <div class="cnode bad">500 tokens</div>
+      </div>
+      <div class="chain">
+        <div class="chaincap">We chunk by page</div>
+        <div class="cnode good">Page 86 chunk</div><div class="cdown">&darr;</div>
+        <div class="cnode good">Page 87 chunk</div><div class="cdown">&darr;</div>
+        <div class="cnode good">Table chunk<small>merged if it spans pages</small></div>
+      </div>
+    </div>
+    <h3>The one exception rule: a table is never cut</h3>
+    <div class="script"><p>Page boundaries have one danger: a PMS or HMB table that continues onto the next page. So we keep exactly one exception. A table detected in Stage 2 always becomes its own chunk, and if it spans multiple pages, those parts are merged into a single chunk together with its notes. Everything else follows the page boundary.</p></div>
+    <div class="good-box">This keeps the "Note 4" problem solved: the note that says <b>"Gate Valve is NOT allowed above 250&deg;C"</b> stays in the same chunk as its table, so the LLM can never see the row without its exception.</div>
+    <h3>Every page chunk carries rich metadata</h3>
+    <div class="chips">
+      <span class="chip">Page Index</span><span class="chip">Document ID</span><span class="chip">Document Type</span><span class="chip">Revision</span>
+      <span class="chip">Project</span><span class="chip">Section</span><span class="chip">Chunk Type (text / table)</span><span class="chip">Bounding Box</span>
+    </div>
+    <div class="script"><p>The section comes free from Stage 2, which already knows which heading governs each page. Before indexing, we prepend a short context line built from this metadata to every chunk, so its embedding and keyword entry know exactly where the page lives:</p></div>
+    <div class="code">[PMS.pdf | Rev C | Section 4.2 &middot; Pipe Class A1A | p.87]
+
+...page content follows...</div>
+    <div class="good-box"><b>Why this works:</b> the metadata gives us revision-aware filtering ("only Rev C"), page-level citations ("Section 4.2, page 87"), and the context line makes every page findable even when the page itself never repeats the class name or document type.</div>
+    <div class="callout">The honest trade: citations are page-level instead of clause-level. Typed Extraction (Stage 4) is unaffected, it reads Stage 2's structured output directly, so the registries stay exactly as designed.</div>
+  </section>
+
+  <section id="stage4">
+    <h2><span class="n">10</span>Stage 4 — Typed Structured Extraction</h2>
+    <div class="script"><p>This is where the real intelligence begins. So far we only organized the document. Now we convert engineering documents into structured knowledge. Our philosophy is simple: different document, different extraction schema. We never use one generic prompt for everything.</p></div>
+
+    <h3>Example 1 — SOW &rarr; Obligation Registry</h3>
+    <div class="script"><p>The AI reads: "The Contractor shall submit Piping GA Drawings before Mechanical Completion." Instead of storing the paragraph, we extract structured fields:</p></div>
+    <div class="code">{
+  <span class="k">"Responsible Party"</span>: <span class="s">"Contractor"</span>,
+  <span class="k">"Deliverable"</span>: <span class="s">"Piping GA Drawings"</span>,
+  <span class="k">"Milestone"</span>: <span class="s">"Mechanical Completion"</span>,
+  <span class="k">"Source"</span>: <span class="s">"Clause 6.4"</span>
+}</div>
+    <div class="good-box">Later, if someone asks "show me every contractor obligation," we don't search PDFs. We query the <b>Obligation Registry</b> directly.</div>
+
+    <h3>Example 2 — PMS &rarr; Material Registry</h3>
+    <div class="code">{
+  <span class="k">"Pipe Class"</span>: <span class="s">"A1A"</span>,
+  <span class="k">"Valve"</span>: <span class="s">"Gate Valve"</span>,
+  <span class="k">"Temperature"</span>: <span class="s">"300&deg;C"</span>,
+  <span class="k">"Pressure"</span>: <span class="s">"150#"</span>
+}</div>
+    <div class="script"><p>Now if an engineer asks "Can I use a Gate Valve in A1A?" that is a structured lookup, so it goes straight to the Material Registry, no vector search needed. Very fast.</p></div>
+
+    <h3>Example 3 — HMB &rarr; Stream Registry</h3>
+    <div class="code">{
+  <span class="k">"Stream"</span>: <span class="s">"105"</span>,
+  <span class="k">"Pressure"</span>: <span class="s">"25"</span>,
+  <span class="k">"Temperature"</span>: <span class="s">"320"</span>,
+  <span class="k">"Flow"</span>: <span class="s">"120"</span>
+}</div>
+
+    <h3>Examples 4, 5, 6 — Philosophy, HAZOP, SIL</h3>
+    <div class="grid">
+      <div class="card"><b>Design Philosophy &rarr; Rule Registry</b><span>"Double Block and Bleed shall be provided for toxic service" becomes: Condition, Rule, Scope, Exceptions.</span></div>
+      <div class="card"><b>HAZOP &rarr; Action Registry</b><span>"Install Pressure Alarm, Responsible: Instrumentation, Status: Open" becomes a structured action row.</span></div>
+      <div class="card"><b>SIL &rarr; SIF Registry</b><span>"Pump Shutdown, SIL 2, PFD, IPL Credits" becomes a structured safety-function row.</span></div>
+    </div>
+    <div class="script"><p>So by the end of Stage 4, our PDFs have become structured databases:</p></div>
+    <div class="chips">
+      <span class="chip reg">Obligation Registry</span><span class="chip reg">Material Registry</span><span class="chip reg">Stream Registry</span>
+      <span class="chip reg">Rule Registry</span><span class="chip reg">HAZOP Registry</span><span class="chip reg">SIF Registry</span>
+    </div>
+    <h3>Implementation: six registries, one physical table</h3>
+    <div class="script"><p>Six registries does <b>not</b> mean six tables, six write paths, and six migration histories. Everything around the typed fields is identical for every record: provenance, confidence, HITL status, revision link, pending/published flag. Only the payload differs, and that is enforced by a per-type schema (Pydantic) at write time, not by table DDL. So all six registries live in <b>one physical table</b>, exposed as six SQL views:</p></div>
+    <div class="code">extracted_records   <span class="c">-- one physical table</span>
+  record_type       <span class="c">-- 'obligation' | 'material' | 'stream' | 'rule' | 'hazop' | 'sif'</span>
+  payload JSONB     <span class="c">-- typed fields, validated against the record_type schema before write</span>
+  doc_id &middot; revision &middot; status &middot; confidence &middot; page &middot; bbox &middot; original + canonical value
+
+obligation_registry, stream_registry, ...   <span class="c">-- SQL views over this table;</span>
+                                            <span class="c">-- hot fields (stream_id, pipe_class, party)</span>
+                                            <span class="c">-- get generated columns + indexes</span></div>
+    <div class="good-box"><b>Why this matters:</b> one write path, one HITL review UI, one provenance model, one migration history. Adding registry #7 later is a new prompt plus a new schema, zero database changes. Every registry mentioned in this document is one of these views, and queries against them look and perform exactly like dedicated tables.</div>
+    <div class="good-box"><b>We don't build all six at once.</b> Each extractor is just one prompt plus one schema, added phase by phase: Obligation first, then Material and Stream, then the rest. Extraction quality per registry is identical, there is simply less to build and maintain at any one time. Each new extractor launches with its own small golden set (Stage 7) and full HITL coverage, so early mistakes are caught by process, not by users. Document types whose extractor hasn't shipped yet are still fully ingested through the search branch (page chunks, semantic + keyword search), so they are queryable from day one, just without the typed fast path.</div>
+    <div class="callout big">We route each question to the cheapest path that can answer it correctly: <b>structured questions are answered from the registries with SQL, while open-ended questions use hybrid retrieval over the indexed page chunks.</b> So "pressure of Stream 105" is a millisecond registry lookup, and "what does the isolation philosophy say about toxic service" uses semantic + keyword search. We don't force every question through embeddings.</div>
+  </section>
+
+  <section id="normalize">
+    <h2><span class="n">11</span>Unit Normalization</h2>
+    <div class="script"><p>Another EPC challenge: different clients use different units, like bar, kg/cm&sup2;, psi, MPa. If we store them raw, search becomes difficult. So we normalize, while keeping the original. This runs right after extraction and <b>before validation</b>, so every downstream check, and every HITL reviewer, sees the original and the canonical value together.</p></div>
+    <div class="chainwrap"><div class="chain" style="min-width:240px">
+      <div class="cnode">Original: 25.5 kg/cm&sup2;</div><div class="cdown">&darr; normalize (1 kg/cm&sup2; = 0.980665 bar)</div>
+      <div class="cnode good">Stored: 25.0 bar</div>
+      <div class="cdown">+ keep original verbatim</div>
+    </div></div>
+    <div class="good-box">This gives us <b>consistent querying without losing the original engineering evidence.</b> The conversion is a deterministic lookup table, not an LLM, and Stage 4.5 re-runs it as one of its checks.</div>
+  </section>
+
+  <section id="validation">
+    <h2><span class="n">12</span>Stage 4.5 — Audit &amp; Validation Pass</h2>
+    <div class="script"><p>Now a very important reliability step. We never blindly trust a single LLM.</p></div>
+    <div class="chainwrap">
+      <div class="chain">
+        <div class="chaincap">Checks pass</div>
+        <div class="cnode">Extraction + Normalization</div><div class="cdown">&darr;</div>
+        <div class="cnode hl">Deterministic checks</div><div class="cdown">&darr; pass</div>
+        <div class="cnode good">Store</div>
+      </div>
+      <div class="chain">
+        <div class="chaincap">Checks fail or score low</div>
+        <div class="cnode hl">Deterministic checks</div><div class="cdown">&darr; fail / low score</div>
+        <div class="cnode">LLM audit</div><div class="cdown">&darr; still unresolved</div>
+        <div class="cnode">HITL review</div>
+      </div>
+    </div>
+    <div class="script"><p>We validate <b>cheaply first</b>. Before spending any second LLM call, we run deterministic checks: is the schema complete, is the unit valid, does the canonical conversion recompute exactly, and most importantly, <b>does the original extracted value appear verbatim in the parsed source text?</b> If a record stores original <b>25.5 kg/cm&sup2;</b> and canonical <b>25.0 bar</b>, we string-match "25.5" back to the actual table cell and re-run the conversion. A string match cannot hallucinate. Only records that <b>fail these checks or score low</b> get the expensive second LLM audit, then HITL if still unresolved. Same guarantee, a fraction of the LLM calls.</p></div>
+    <h3>Confidence &amp; Human-in-the-Loop</h3>
+    <div class="script"><p>Every extracted record gets a confidence score, for example 0.98, 0.91, or 0.42. Anything below the threshold goes to HITL, Human in the Loop. The reviewer sees the original PDF, the extracted JSON, and a correction panel. If a correction is needed, the human edits it and the database updates.</p></div>
+    <div class="chips"><span class="chip good-box" style="border-left:3px solid var(--ok)">0.98 &check;</span><span class="chip" style="border-left:3px solid var(--warn)">0.91</span><span class="chip" style="border-left:3px solid var(--bad)">0.42 &rarr; HITL</span></div>
+    <div class="callout">In engineering, being confidently wrong is worse than saying "I don't know." One incorrect pressure value can cause a wrong equipment selection. Our rule: <b>never silently wrong.</b> If confidence is low, ask a human.</div>
+  </section>
+
+  <section id="stage5">
+    <h2><span class="n">13</span>Stage 5 — Revision Handling</h2>
+    <div class="script"><p>Now something unique to EPC projects: engineering documents constantly evolve. Suppose Revision A says Pressure = 20 bar, and later Revision B changes it to 25 bar. Traditional RAG stores both, so retrieval sometimes returns the old chunk, sometimes the new one. Very inconsistent.</p></div>
+    <h3>Our solution: a supersedes link, not a graph engine</h3>
+    <div class="chainwrap"><div class="chain">
+      <div class="cnode">Revision A</div><div class="cdown">&darr; superseded by</div>
+      <div class="cnode">Revision B</div><div class="cdown">&darr; superseded by</div>
+      <div class="cnode good">Revision C (current)</div>
+    </div></div>
+    <div class="script"><p>We don't need a dedicated graph database for this. Every document carries one <span class="mono">supersedes</span> reference to the revision it replaces, and every registry record carries its revision. When an engineer asks "pressure of Stream 105," the query simply <b>filters to the latest revision</b>. Revision C, not A, not B. One column and one filter deliver the core guarantee: superseded content is never served as current.</p></div>
+    <h3>Conflict detection comes for free</h3>
+    <div class="script"><p>Suppose the PMS says 300&deg;C and another current document says 280&deg;C. We don't need a special ingestion-time conflict detector. Because both records are stored with citations, <b>hybrid retrieval naturally returns both</b>, and the answer layer presents them side by side with sources. The SQL fast path follows the same rule: if a registry query returns more than one current row for the same key, the answer layer treats that as a conflict and shows both records with their citations. The "never invent agreement" behavior falls out of the retrieval design itself.</p></div>
+    <h3>Cross-reference links <span class="tag plan">Later phase</span></h3>
+    <div class="script"><p>Documents refer to other sections: "Refer Clause 5.2," "Refer Table 8." Turning these into clickable navigation is a nice UX touch, but it does not change answer quality, so we defer it. The section metadata we already store is enough to resolve them later without re-ingesting.</p></div>
+    <div class="callout">Our rule: never invent agreement where the documents disagree. By the end of Stage 5 we have structured, validated, revision-aware engineering knowledge, with one column instead of a graph engine.</div>
+  </section>
+
+  <!-- ============ PART 3 ============ -->
+  <section id="stage6">
+    <div class="partbar"><span class="pb">Part 3</span><span class="pl">Making knowledge searchable &amp; the payoff</span></div>
+    <h2><span class="n">14</span>Stage 6 — Indexing: One PostgreSQL, Five Logical Views</h2>
+    <div class="statusbar">
+      <span class="lead">Simplified</span>
+      <span>Earlier this was drawn as five separate stores. In practice, at our scale, all five are <b>one PostgreSQL instance</b>: registries as typed views over one records table, pgvector for embeddings, full-text search for keywords, provenance as columns, and one supersedes link for revisions. One database to deploy, back up, and run on-prem.</span>
+    </div>
+    <div class="script"><p>The key insight still holds: <b>not every question should be answered with embeddings.</b> Different questions need different access paths. But those paths don't need five different systems, they are five logical views inside a single database.</p></div>
+
+    <h3>View 1 — Registries (six SQL views over one records table)</h3>
+    <div class="script"><p>All extracted entities live here, in the single <span class="mono">extracted_records</span> table from Stage 4, exposed as one indexed view per registry. If an engineer asks a structured question like "what is the pressure of Stream 105?" we don't need an LLM or vector search, just SQL:</p></div>
+    <div class="code"><span class="c">-- pressure of Stream 105</span>
+<span class="k">SELECT</span> pressure <span class="k">FROM</span> stream_registry <span class="k">WHERE</span> stream_id = <span class="s">'105'</span>;
+<span class="c">-- result: 25 bar. Milliseconds. No hallucination.</span></div>
+    <div class="code"><span class="c">-- every contractor obligation</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> obligation_registry <span class="k">WHERE</span> party = <span class="s">'Contractor'</span>;</div>
+    <div class="good-box">Our rule: <b>if structured data already exists, don't ask the LLM.</b></div>
+
+    <h3>View 2 — Semantic search (pgvector, same database)</h3>
+    <div class="script"><p>Not every question is structured. "What does the isolation philosophy say about toxic service?" is a paragraph, not a field. So we embed the page chunks into a <span class="mono">pgvector</span> column. Even if the document says "Double Block and Bleed," semantic search understands the concepts are related. No separate vector database to run, the vectors sit right next to the registries.</p></div>
+
+    <h3>View 3 — Exact identifiers (Postgres full-text search)</h3>
+    <div class="script"><p>Embeddings have one weakness: engineering identifiers like A1A, NACE MR0175, API 610, ASME B31.3, ISO 14692. Embedding models don't always preserve these correctly. So we also keep a lexical index using <b>PostgreSQL full-text search</b> (BM25-style ranking). "Show every reference to NACE MR0175" is exact matching, and lexical search beats embeddings there. Hybrid retrieval = View 2 + View 3 together.</p></div>
+
+    <h3>View 4 — Provenance (columns on every row)</h3>
+    <div class="script"><p>Engineers never blindly trust AI, they ask "where did this come from?" So every record carries its provenance as columns: Document, Revision, Page, Section, Bounding Box. When the AI answers "Pressure = 25 bar" and the engineer clicks, the system opens the exact page, because we stored the coordinates during ingestion. No separate citation service, just fields on the row.</p></div>
+
+    <h3>View 5 — Revisions (one supersedes link)</h3>
+    <div class="script"><p>Finally, the revision chain from Stage 5: a single <span class="mono">supersedes</span> foreign key connects Revision A &rarr; B &rarr; C. That one column is what lets every query filter to the current revision. No graph database required.</p></div>
+
+    <h3>The final knowledge base — one database</h3>
+    <div class="code">PostgreSQL  (single instance)
+&#9474;
+&#9500;&#9472; extracted_records (one table)
+&#9474;      &#9500;&#9472; views: Obligation / Material / Stream
+&#9474;      &#9492;&#9472;        Rule / HAZOP / SIF
+&#9500;&#9472; pgvector column      &rarr; semantic search
+&#9500;&#9472; full-text index      &rarr; exact identifiers
+&#9500;&#9472; provenance columns   &rarr; citations
+&#9492;&#9472; supersedes link      &rarr; revisions</div>
+    <div class="good-box"><b>Why one database:</b> simpler to deploy on-prem (a hard requirement), provenance is a plain foreign-key join instead of a cross-system lookup, and there is one thing to back up and secure, not five. Split a view out into a dedicated engine later only if scale ever forces it. Everything Stage 6 writes lands with <b>status = pending</b>; nothing becomes queryable until Stage 7 promotes it.</div>
+  </section>
+
+  <section id="stage7">
+    <h2><span class="n">15</span>Stage 7 — Evaluation &amp; Quality Gates</h2>
+    <div class="script"><p>One final stage before ingestion is considered complete: evaluation. We don't want bad engineering knowledge entering production, so every ingestion run is graded against a golden dataset.</p></div>
+    <div class="good-box"><b>We don't hand-build huge golden sets upfront.</b> We start with a small seed set per document type plus spot-check sampling on each run, then grow the golden set automatically from the corrections reviewers make in HITL. The evaluation gets stronger over time without a big labeling project blocking the launch.</div>
+    <div class="grid">
+      <div class="card"><b>Obligations</b><span>Golden set says the SOW has 120 obligations. Our extractor finds 118. Accuracy 98%. Good.</span></div>
+      <div class="card"><b>Streams</b><span>HMB has 300 streams. Extractor finds 295. Accuracy 98.3%.</span></div>
+      <div class="card"><b>Citations</b><span>Pressure extracted correctly but linked to the wrong page? That is a failure, because engineering users need evidence.</span></div>
+    </div>
+    <h3>What we evaluate</h3>
+    <div class="chips">
+      <span class="chip">Extraction Accuracy</span><span class="chip">Registry Completeness</span><span class="chip">Citation Accuracy</span>
+      <span class="chip">OCR Quality</span><span class="chip">Table Parsing</span><span class="chip">Revision Resolution</span><span class="chip">Overall Confidence</span>
+    </div>
+    <div class="callout">Publication is an explicit gate: every record is written as <b>status = pending</b>, and only when the metrics pass does Stage 7 flip it to <b>published</b> and visible to queries. If the metrics fail, nothing goes live and the document goes back for review. Never compromise engineering accuracy.</div>
+  </section>
+
+  <section id="fullflow">
+    <h2><span class="n">16</span>The Complete End-to-End Flow</h2>
+    <div class="script"><p>So if I summarize the complete ingestion pipeline, this is exactly how the flow goes, top to bottom, from an uploaded PDF to a ready knowledge base.</p></div>
+
+    <div class="master">
+      <div class="mstage up"><div class="mbadge up">&#8593;</div><div class="mtt">User uploads PDF<small>SOW &middot; PMS &middot; HMB &middot; philosophy &middot; HAZOP &middot; SIL</small></div></div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage"><div class="mbadge">0</div><div class="mtt">Intake &amp; Registration<small>hash / dedupe / doc ID / metadata</small></div></div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage"><div class="mbadge">1</div><div class="mtt">Document Classification<small>form + filename + small LLM check &middot; edge cases &rarr; manual</small></div></div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage"><div class="mbadge">2</div><div class="mtt">Layout Understanding<small>adaptive parsing, per page</small></div></div>
+      <div class="mbranch b3">
+        <div class="mbox">Layout Parser<br><span class="muted" style="font-weight:500">native text + structure</span></div>
+        <div class="mbox">OCR Engine<br><span class="muted" style="font-weight:500">scanned / Hindi+Eng</span></div>
+        <div class="mbox">Vision Parser<br><span class="muted" style="font-weight:500">tables in images</span></div>
+      </div>
+      <div class="mnote">current candidates: Docling &middot; Tesseract &middot; GPT-4o Vision</div>
+      <div class="mdown">&darr;</div>
+      <div class="mnote">Stage 2's structured model feeds two parallel branches</div>
+      <div class="mstage"><div class="mbadge">3</div><div class="mtt">Page-Based Chunking (search branch)<small>one page = one chunk &middot; tables never split &middot; rich metadata</small></div></div>
+      <div class="mnote">in parallel: Stage 4 reads Stage 2's structured output directly, not the page chunks</div>
+      <div class="mstage key"><div class="mbadge">4</div><div class="mtt">Typed Structured Extraction (registry branch)<small>different schema per document type</small></div></div>
+      <div class="mbranch b6">
+        <div class="mbox">Obligation</div><div class="mbox">Material</div><div class="mbox">Streams</div>
+        <div class="mbox">Rules</div><div class="mbox">HAZOP</div><div class="mbox">SIF</div>
+      </div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage"><div class="mbadge">&#8776;</div><div class="mtt">Unit Normalization<small>store canonical + keep original verbatim</small></div></div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage"><div class="mbadge">&#10003;</div><div class="mtt">Validation &rarr; Confidence Score<small>deterministic checks first</small></div></div>
+      <div class="mbranch b2">
+        <div class="mbox" style="border-style:solid;border-color:var(--ok);color:var(--ok)">PASS &rarr; continue</div>
+        <div class="mbox" style="border-style:solid;border-color:var(--bad);color:var(--bad)">FAIL / low score &rarr; Human review (HITL)</div>
+      </div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage"><div class="mbadge">5</div><div class="mtt">Revision Handling<small>supersedes link &middot; latest-revision filter &middot; conflicts surface at query</small></div></div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage key"><div class="mbadge">6</div><div class="mtt">Indexing &mdash; one PostgreSQL<small>five logical views in a single database</small></div></div>
+      <div class="mbranch b5">
+        <div class="mbox">Structured Records</div><div class="mbox">Semantic Index</div><div class="mbox">Keyword Index</div>
+        <div class="mbox">Provenance</div><div class="mbox">Revision Links</div>
+      </div>
+      <div class="mnote">all one PostgreSQL &middot; pgvector for semantic, full-text for keyword</div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage"><div class="mbadge">7</div><div class="mtt">Evaluation &amp; Quality Gates<small>accuracy, completeness, citations &middot; pass &rarr; flip pending to published</small></div></div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage end"><div class="mbadge end">&#10003;</div><div class="mtt">Knowledge Base Ready<small>structured &middot; validated &middot; revision-aware &middot; fully traceable</small></div></div>
+    </div>
+  </section>
+
+  <section id="fullsystem">
+    <h2><span class="n">17</span>The full system — from upload to answer</h2>
+    <div class="script">
+      <p>Everything above is <b>Part A, ingestion</b>: turning a PDF into structured, published knowledge. This last view zooms out to the whole journey, including <b>Part B, retrieval and answering</b>, the half that actually turns those registries into an engineer's answer. Part B is the next phase and is shown here for context, so the full picture reads in one place.</p>
+    </div>
+
+    <div class="master">
+
+      <div class="mband">Part A &middot; Ingestion &mdash; offline, once per revision</div>
+      <div class="mnote">detailed stage by stage above &middot; condensed here</div>
+      <div class="flowline" style="margin:8px 0">
+        <span class="fstep up">Upload</span><span class="farrow">&rarr;</span>
+        <span class="fstep">Register</span><span class="farrow">&rarr;</span>
+        <span class="fstep">Classify</span><span class="farrow">&rarr;</span>
+        <span class="fstep">Parse layout</span><span class="farrow">&rarr;</span>
+        <span class="fstep key">Chunk &#8741; Extract</span><span class="farrow">&rarr;</span>
+        <span class="fstep">Normalize</span><span class="farrow">&rarr;</span>
+        <span class="fstep">Validate</span><span class="farrow">&rarr;</span>
+        <span class="fstep">Revision</span><span class="farrow">&rarr;</span>
+        <span class="fstep">Index</span><span class="farrow">&rarr;</span>
+        <span class="fstep end">Evaluate &amp; publish</span>
+      </div>
+
+      <div class="mdown">&darr;</div>
+
+      <div class="kbbox">
+        <div class="kbt">Knowledge Base &mdash; one PostgreSQL</div>
+        <div class="mbranch b5">
+          <div class="mbox">Structured Records<br><span class="muted" style="font-weight:500">facts</span></div>
+          <div class="mbox">Semantic Index<br><span class="muted" style="font-weight:500">meaning</span></div>
+          <div class="mbox">Keyword Index<br><span class="muted" style="font-weight:500">exact IDs</span></div>
+          <div class="mbox">Provenance<br><span class="muted" style="font-weight:500">citations</span></div>
+          <div class="mbox">Revision Links<br><span class="muted" style="font-weight:500">revisions</span></div>
+        </div>
+        <div class="mnote">only <b>published</b> records are visible to queries</div>
+      </div>
+
+      <div class="mdown">&darr;</div>
+
+      <div class="mband b">Part B &middot; Retrieval &amp; answering &mdash; online, per query <span class="tag plan">Next phase</span></div>
+
+      <div class="mstage up"><div class="mbadge up">&#8593;</div><div class="mtt">Engineer asks a question<small>"Is a Gate Valve allowed in Pipe Class A1A at 300&deg;C?"</small></div></div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage q"><div class="mbadge q">Q1</div><div class="mtt">Understand &amp; route<small>fact lookup or concept question? extract filters: project &middot; revision &middot; type</small></div></div>
+      <div class="mbranch b2">
+        <div class="mbox">Q2a &middot; SQL on registry<br><span class="muted" style="font-weight:500">facts &amp; numbers &middot; milliseconds</span></div>
+        <div class="mbox">Q2b &middot; Hybrid search<br><span class="muted" style="font-weight:500">semantic + keyword &middot; concepts</span></div>
+      </div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage q"><div class="mbadge q">Q3</div><div class="mtt">Answer generation (LLM)<small>uses only retrieved records + citations &middot; conflicts shown, never guessed</small></div></div>
+      <div class="mdown">&darr;</div>
+      <div class="mstage end"><div class="mbadge end">&#10003;</div><div class="mtt">Cited answer<small>"No &mdash; limited to 250&deg;C per Note 4. PMS.pdf, Rev C, p.87" &middot; click opens the exact page</small></div></div>
+
+      <div class="mband x">Cross-cutting &mdash; runs underneath both parts</div>
+      <div class="xbox">
+        <div class="mbranch b2">
+          <div class="mbox">Job queue + checkpoints<br><span class="muted" style="font-weight:500">a crash resumes, never restarts</span></div>
+          <div class="mbox">HITL review console<br><span class="muted" style="font-weight:500">low-confidence records; publish waits</span></div>
+          <div class="mbox">Access control<br><span class="muted" style="font-weight:500">every path scoped by project</span></div>
+          <div class="mbox">Golden sets grow from HITL<br><span class="muted" style="font-weight:500">evaluation strengthens over time</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout">Read top to bottom: a document is <b>understood once</b> (Part A) so that every question becomes a <b>fast, cited lookup</b> (Part B). The heavy thinking happens once during ingestion; the engineer only ever sees the fast, traceable answer.</div>
+  </section>
+
+  <section id="whybetter">
+    <h2><span class="n">18</span>Why this is better than traditional RAG</h2>
+    <div class="compare">
+      <div class="col t">
+        <h4>Traditional RAG</h4>
+        <div class="muted mono" style="font-size:.82rem;margin:6px 0">PDF &rarr; Chunk &rarr; Embed &rarr; LLM</div>
+        <ul>
+          <li>Breaks tables</li>
+          <li>Breaks clauses</li>
+          <li>Doesn't understand revisions</li>
+          <li>No structured knowledge</li>
+          <li>Hallucination risk</li>
+          <li>Slow for numerical queries</li>
+        </ul>
+      </div>
+      <div class="col o">
+        <h4>Our architecture</h4>
+        <div class="muted mono" style="font-size:.82rem;margin:6px 0">Understand &rarr; Page chunks + metadata &rarr; Extract typed knowledge &rarr; Normalize &rarr; Validate &rarr; Revision link &rarr; Registries &rarr; One Postgres (many views)</div>
+        <ul>
+          <li>Keeps tables and notes together</li>
+          <li>Simple, predictable page chunks</li>
+          <li>Revision-aware by design</li>
+          <li>Structured registries, queried directly</li>
+          <li>Validated, never silently wrong</li>
+          <li>Millisecond lookups for numbers</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout big">The biggest difference: most RAG systems treat documents as <b>text</b>. We treat documents as <b>engineering knowledge</b>. That single decision changes the entire pipeline.</div>
+    <div class="callout"><b>The trade-off:</b> this design spends more compute up front during ingestion (tens of minutes for a typical document, potentially a few hours for an 800-page fully scanned one; the pilot gives us real numbers) in exchange for much faster, more accurate, and more reliable query-time performance. The bet is that a document is ingested once per revision but queried thousands of times, so paying the cost once is worth it, and since ingestion runs in the background, no engineer ever waits on it.</div>
+  </section>
+
+  <section id="future">
+    <h2><span class="n">19</span>Future scope &amp; closing</h2>
+    <div class="script">
+      <p>Once these registries exist, building future products becomes much easier: cross-document validation, drawing validation, datasheet validation, engineering compliance, vendor deviation analysis, even agentic engineering workflows. All of them can consume the same knowledge layer.</p>
+      <p>So this pipeline is not just preparing documents for question answering. It is building the foundation of an Engineering Knowledge Graph for the entire platform.</p>
+    </div>
+    <div class="chips">
+      <span class="chip">Cross-document validation</span><span class="chip">Drawing validation</span><span class="chip">Datasheet validation</span>
+      <span class="chip">Compliance checks</span><span class="chip">Vendor deviation analysis</span><span class="chip">Agentic workflows</span>
+    </div>
+    <div class="script">
+      <p>To conclude, our ingestion pipeline is built around one core philosophy: understand the document once, structure the knowledge once, validate it once, and reuse that knowledge everywhere.</p>
+      <p>Instead of repeatedly asking an LLM to understand the same PDF on every query, we do the heavy intelligence upfront during ingestion. The result is a system that is faster, more accurate, revision-aware, fully traceable, and significantly more reliable for engineering workflows.</p>
+      <p>That is the overall architecture of the ingestion pipeline: heavy intelligence upfront, once, so every downstream query is fast, accurate, and traceable.</p>
+    </div>
+    <div class="callout big">Understand once, structure once, validate once, reuse everywhere.</div>
+  </section>
+
+    <footer>
+      Ingestion-pipeline architecture &middot; <b>proposed design, not yet implemented</b> &middot; plain-language companion to <span class="mono">PRESENTATION.html</span> (deck) and <span class="mono">ARCHITECTURE_PRESENTATION.html</span> (full system). Scope: ingestion only; retrieval and answering is the next phase.
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  (function(){
+    var r=document.documentElement;
+    if(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)r.classList.add('dark');
+    document.getElementById('themeBtn').addEventListener('click',function(){r.classList.toggle('dark');});
+    var links=[].slice.call(document.querySelectorAll('.nav-link')),m={};
+    links.forEach(function(l){m[l.getAttribute('href').slice(1)]=l;});
+    var o=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting){links.forEach(function(l){l.classList.remove('active');});var a=m[e.target.id];if(a)a.classList.add('active');}
+    });},{rootMargin:'-8% 0px -85% 0px'});
+    document.querySelectorAll('section[id]').forEach(function(s){o.observe(s);});
+    var lastLink=links[links.length-1];
+    window.addEventListener('scroll',function(){
+      var atBottom=window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-2;
+      if(atBottom){links.forEach(function(l){l.classList.remove('active');});lastLink.classList.add('active');}
+    },{passive:true});
+  })();
+</script>
+</body>
+</html>
