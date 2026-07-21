@@ -81,6 +81,16 @@ const services = [
 
 const cases = [
   {
+    title: "Mithila Organix — E-Commerce Platform & Ops Hub",
+    stack: "React · Tailwind CSS · Node.js · Express · MongoDB · REST APIs · Figma",
+    body: "A complete, end-to-end e-commerce platform and operational hub for Mithila Organix, a modern organic food brand specializing in premium roasted makhana and natural snacks. We designed the brand identity, product packaging, and a mobile-first storefront in Figma, then shipped it as a fast, responsive React + Tailwind interface with a seamless cart and checkout flow. On the backend, scalable REST APIs (Node.js/Express) and structured MongoDB models keep the storefront and admin portal in sync instantly — orders, inventory, and catalog run from a single operational hub.",
+    by: "Avinash Kumar",
+    demo: "https://drive.google.com/file/d/1iIZS8dmfpO2Kz3ebhRwJaZdEf9-63p6s/view?usp=sharing",
+    demoLabel: "Storefront walkthrough",
+    demo2: "https://drive.google.com/file/d/14UT1pmToTxSIp5EzW4oAhAQvHflL0JOG/view?usp=sharing",
+    demo2Label: "Admin portal",
+  },
+  {
     title: "AI-Powered DEXPI Extraction",
     stack: "Python · OpenCV · PaddleOCR · Gemini Vision · FastAPI · Celery · Redis",
     body: "P&ID and piping isometric drawings are among the hardest documents in engineering to read — thousands of symbols, weld points, valves, dimensions, and BOM entries packed onto a single sheet, encoded to the DEXPI standard and near-impossible to digitize by hand without errors. We built an AI system that extracts this structured data straight from the drawings, combining OCR, vision, and multimodal LLMs to detect symbols, reconstruct topology, and validate relationships on an async, fault-tolerant pipeline. This is exactly the kind of complex P&ID problem we solve.",
